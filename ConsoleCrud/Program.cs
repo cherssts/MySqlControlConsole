@@ -8,9 +8,11 @@ namespace ConsoleMySQLControl
         static void Main(string[] args)
         {
             string sql = "";
+            bool _selectionTable;
             //var con = new MySqlConnection(sql);
             MySqlConnection con = new MySqlConnection(sql);
 
+            string _table = "";
             string _server = "";
             string _port = "";
             string _userId = "";
@@ -38,14 +40,14 @@ namespace ConsoleMySQLControl
                 Console.WriteLine("Please input your password :");
                 _password = Console.ReadLine();
                 Console.Clear();
-                con = new MySqlConnection(sql);
+
                 //Write database
-                Console.WriteLine("Finally write the name of the data base you are connecting to :");
+                Console.WriteLine("Write the name of the data base you are connecting to :");
                 _database = Console.ReadLine();
+                Console.Clear();
+                _selectionTable = true;
 
                 //sql = $"server={_server};port={_port};userid={_userId};password={_password};database={_database}";
-                
-
             }
             string _input = "";
 
@@ -53,8 +55,16 @@ namespace ConsoleMySQLControl
 
             while (_input.ToLower() != "exit" || _input.ToLower() != "stop")
             {
+                if(_selectionTable = true)
+                {
+                    string a = "Show Tables;";
+                    var tableShowcase = new MySqlCommand(a,con);
+                    Console.WriteLine("Finally write the table you want to see");
+                    _table = Console.ReadLine();
+                    Console.Clear();
+                }
 
-                Display_text(con);
+                Display_text(con, _table);
 
                 con.Open();
                 _Text();
@@ -115,25 +125,50 @@ namespace ConsoleMySQLControl
             Console.WriteLine("('Exit' or 'stop' to stop program)");
             Console.WriteLine("Please write Your Command: ");
         }
-        static public void Display_text(MySqlConnection a)
+        static public void Display_text(MySqlConnection a, string b)
         {
             //a = new MySqlConnection(_Data(b,c,d,e,f));
             a.Open();
-            string viewTable = "Select * from `example`";
+            string viewTable = $"Select * from `{b}`";
             var viewcomd = new MySqlCommand(viewTable, a);
             viewcomd.CommandText = viewTable;
             viewcomd.ExecuteNonQuery();
             MySqlDataReader _reader = viewcomd.ExecuteReader();
             Console.WriteLine("Here is your Table:");
-            Console.WriteLine("=====================================");
 
-            Console.WriteLine($"{_reader.GetName(0)}\t{_reader.GetName(1)}\t\t\t{_reader.GetName(2)}");
-            Console.WriteLine("-------------------------------------");
+            for (int i = 0; i < _reader.VisibleFieldCount; i++)
+            {
+                Console.Write($"{_reader.GetName(i)}\t");
+            }
+            Console.WriteLine();
+            int x = 0;
             while (_reader.Read())
             {
-                Console.WriteLine($"{_reader.GetInt32(0)}\t{_reader.GetString(1)}\t\t\t{_reader.GetInt32(2)}\t");
+                for (int i = 0; i < _reader.VisibleFieldCount; i++)
+                {
+                    
+                    var data = _reader[i];
+                    if (x != _reader.VisibleFieldCount)
+                    {
+                        if(data.GetType() == typeof(DateTime))
+                        {
+                            DateTime dt = (DateTime)data;
+                            Console.Write($"{dt.ToString("dd/MM/yyyy")}\t");
+                        }
+                        else
+                        {
+                            Console.Write($"{data}\t");
+                        }
+                        x++;
+                    }
+                    if(x == _reader.VisibleFieldCount)
+                    {
+                        Console.WriteLine();
+                        x = 0;
+                    }
+                }
             }
-            Console.WriteLine("=====================================");
+            Console.WriteLine();
             a.Close();
         }
 
